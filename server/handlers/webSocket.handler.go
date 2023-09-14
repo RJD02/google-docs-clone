@@ -13,6 +13,7 @@ type WebSocketClient struct {
 	Conn *websocket.Conn
 }
 
+var id = 1
 var clients = make(map[string]*WebSocketClient)
 
 func generateUniqueID() string {
@@ -41,14 +42,18 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	conn.SetCloseHandler(func(code int, text string) error {
+		log.Printf("Connection closed with code %d: %s", code, text)
+		return nil
+	})
+
 	fmt.Println("Client connected")
 
 	uniqueID := generateUniqueID()
-	client := &WebSocketClient{
+	clients[uniqueID] = &WebSocketClient{
 		ID:   uniqueID,
 		Conn: conn,
 	}
-	clients[uniqueID] = client
 
 	for {
 		fmt.Println(len(clients))
@@ -59,9 +64,15 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("recv: %d", messageType)
-		log.Printf("msg: %s", p)
+		log.Printf("msg: %s\n", p)
+		log.Println("Generated uuid: ", clients[uniqueID].ID)
 
-		if err := conn.WriteMessage(messageType, p); err != nil {
+		returnMsg := "Hello"
+		if messageType == websocket.TextMessage {
+			returnMsg += clients[uniqueID].ID
+		}
+
+		if err := conn.WriteMessage(messageType, []byte(returnMsg)); err != nil {
 			fmt.Println(err)
 			return
 		}
