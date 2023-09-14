@@ -10,6 +10,7 @@ const (
 type AppConfig struct {
 	Environment string
 	DBConn      *sql.DB
+	ShouldSeed  bool
 }
 
 func (app *AppConfig) SetEnvironment(environment string) {
@@ -22,4 +23,8 @@ func (app *AppConfig) SetEnvironment(environment string) {
 
 func (app *AppConfig) SetDBConnection(db *sql.DB) {
 	app.DBConn = db
+}
+
+func (app *AppConfig) SetShouldSeed(val bool) {
+	app.ShouldSeed = val
 }
