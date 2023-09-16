@@ -5,6 +5,7 @@ import (
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
+	rethinkdb "gopkg.in/rethinkdb/rethinkdb-go.v6"
 )
 
 const DB_NAME = "google_docs_clone"
@@ -18,4 +19,16 @@ func ConnectToDB() *sql.DB {
 	log.Println("Connected to mysql")
 
 	return db
+}
+
+func ConnectToRethinkDB() *rethinkdb.Session {
+	session, err := rethinkdb.Connect(rethinkdb.ConnectOpts{
+		Address:  "localhost",
+		Database: "google_docs_clone",
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	return session
 }

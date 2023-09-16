@@ -1,9 +1,13 @@
 package db
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/RJD02/google-docs-clone/config"
+	"github.com/RJD02/google-docs-clone/model"
+	rethinkdb "gopkg.in/rethinkdb/rethinkdb-go.v6"
 )
 
 var app config.AppConfig
@@ -72,8 +76,27 @@ func CreateUserDocumentRoleTable() {
 	log.Println("Table `user-document-role` created successfully")
 }
 
+func CreateRethinkDocumentTable() {
+	document := model.Document{
+		Id:        1,
+		Content:   "Hello World, this is the first document",
+		UserId:    1,
+		Title:     "Something Interesting",
+		IsPublic:  false,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	res, err := rethinkdb.Table("Document").Insert(document).RunWrite(app.RethinkDBSess)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res.GeneratedKeys[0])
+}
+
 func Run() {
 	CreateUserTable()
 	CreateDocumentTable()
 	CreateUserDocumentRoleTable()
+	CreateRethinkDocumentTable()
 }
