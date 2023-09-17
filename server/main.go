@@ -11,7 +11,6 @@ import (
 	"github.com/RJD02/google-docs-clone/handlers"
 	"github.com/RJD02/google-docs-clone/routes"
 	"github.com/RJD02/google-docs-clone/seeder"
-	"github.com/RJD02/google-docs-clone/types"
 	"github.com/gorilla/mux"
 	"gopkg.in/rethinkdb/rethinkdb-go.v6"
 )
@@ -51,10 +50,10 @@ func main() {
 
 		defer cursor.Close()
 
-		var change types.RethinkChange
+		var change map[string]map[string]interface{}
 
 		for cursor.Next(&change) {
-			fmt.Printf("Real-time change: %v\n", change)
+			fmt.Printf("Real-time change: %v\n%s\n", change["new_val"]["Content"], change["new_val"]["id"])
 		}
 	}()
 
