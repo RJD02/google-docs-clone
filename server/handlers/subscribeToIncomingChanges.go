@@ -12,7 +12,7 @@ func subscribeToIncomingChanges(wg *sync.WaitGroup, documentId string, conn *web
 	defer wg.Done()
 	filter := map[string]interface{}{
 		"DocumentId": documentId,
-		"Id":         uniqueId,
+		"id":         documentConnectionsCount[documentId].rowId,
 	}
 	cursor, err := rethinkdb.Table("Document").Filter(filter).Changes().Run(app.RethinkDBSess)
 	if err != nil {

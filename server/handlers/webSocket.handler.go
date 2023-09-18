@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/RJD02/google-docs-clone/config"
-	"github.com/RJD02/google-docs-clone/utils"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -60,21 +59,6 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Client connected")
 
 	uniqueID := generateUniqueID()
-	client := &utils.Client{
-		ID:     uniqueID,
-		Socket: conn,
-	}
-	app.WebSocketManager.RegisterClient(client)
-
-	if _, exists := documentConnectionsCount[documentId]; !exists {
-		documentConnectionsCount[documentId] = SocketDBInfo{
-			count: 1,
-		}
-	} else {
-		val, _ := documentConnectionsCount[documentId]
-		val.count += 1
-		documentConnectionsCount[documentId] = val
-	}
 
 	wg.Add(1)
 	go conn.SetCloseHandler(func(code int, text string) error {
@@ -89,7 +73,6 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Printf("Connection closed with code %d: %s", code, text)
 		log.Println("Deleting the unique id associated with it")
-		delete(app.WebSocketManager.Clients, uniqueID)
 		return nil
 	})
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"gopkg.in/rethinkdb/rethinkdb-go.v6"
@@ -13,31 +14,30 @@ func writeIncomingChanges(wg *sync.WaitGroup, conn *websocket.Conn, documentId s
 
 	defer wg.Done()
 	for {
-		fmt.Println(len(app.WebSocketManager.Clients))
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err, messageType)
 			return
 		}
-
-		log.Printf("recv: %d", messageType)
-		log.Printf("msg: %s\n", p)
-		log.Println("Generated uuid: ", app.WebSocketManager.Clients[uniqueID].ID)
 
 		documentData := make(map[string]string)
 
 		documentData["DocumentId"] = documentId
 		documentData["Id"] = uniqueID
 		documentData["Content"] = string(p)
+		documentData["timestamp"] = time.Now().String()
 
 		if _, exists := documentConnectionsCount[documentId]; exists {
-			rethinkdb.Table("Document").Get(documentConnectionsCount[documentId].rowId).Update(documentData).Run(app.RethinkDBSess)
+			log.Println("Document exists")
+			rowId := documentConnectionsCount[documentId].rowId
+			rethinkdb.Table("Document").Get(rowId).Update(documentData).Run(app.RethinkDBSess)
 		} else {
 			response, err := rethinkdb.Table("Document").Insert(documentData).RunWrite(app.RethinkDBSess)
 			if err != nil {
 				log.Fatal(err)
 			}
 			insertedID := response.GeneratedKeys[0]
+			log.Println("Inserted with id", insertedID)
 			documentConnectionsCount[documentId] = SocketDBInfo{
 				count: 1,
 				rowId: insertedID,
