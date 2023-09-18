@@ -98,5 +98,5 @@ func Run() {
 	CreateUserTable()
 	CreateDocumentTable()
 	CreateUserDocumentRoleTable()
-	CreateRethinkDocumentTable()
+	// CreateRethinkDocumentTable()
 }

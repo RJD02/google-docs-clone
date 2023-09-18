@@ -6,9 +6,23 @@ import "./App.css";
 function App() {
     const [count, setCount] = useState(0);
     useEffect(() => {
-        const wss = new WebSocket("wss://localhost:8000/ws");
-        wss.onmessage = (msg) => console.log(msg);
-        wss.send("Hello World");
+        // const wss = new WebSocket("ws://localhost:8000/ws/2");
+        // wss.onmessage = (msg) => console.log(msg);
+        // wss.send("Hello World");
+        const ws = new WebSocket("ws://localhost:8000/ws/2");
+        ws.onopen = () => {
+            console.log("WebSocket connection established");
+            ws.send("Hello");
+        };
+        ws.onmessage = (event) => console.log(event.data);
+
+        ws.onerror = (err) => console.error(err);
+
+        ws.onclose = () => console.log("Websocket connection closed");
+
+        return () => {
+            ws.close();
+        };
     }, []);
 
     return (

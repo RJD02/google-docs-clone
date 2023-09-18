@@ -1,18 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/RJD02/google-docs-clone/config"
 	"github.com/RJD02/google-docs-clone/db"
 	"github.com/RJD02/google-docs-clone/handlers"
 	"github.com/RJD02/google-docs-clone/routes"
 	"github.com/RJD02/google-docs-clone/seeder"
+	"github.com/RJD02/google-docs-clone/utils"
 	"github.com/gorilla/mux"
-	"gopkg.in/rethinkdb/rethinkdb-go.v6"
 )
 
 func main() {
@@ -21,6 +19,7 @@ func main() {
 	app.SetShouldSeed(true)
 	app.SetDBConnection(db.ConnectToDB())
 	app.SetRethinkDBConnection(db.ConnectToRethinkDB())
+	app.SetWebSocketManager(utils.NewWebSocketManager())
 	if app.Environment == config.DEVELOPMENT && app.ShouldSeed {
 		go func() {
 			db.GetAppState(app)
@@ -30,32 +29,13 @@ func main() {
 		}()
 	}
 
+	handlers.GetAppState(app)
+
 	r := mux.NewRouter()
 
-	r.HandleFunc("/ws", handlers.HandleWebSocket)
-	go func() {
-		fmt.Println("Goroutine started...")
-		for {
-			db.CreateRethinkDocumentTable()
-			fmt.Println("Executed...")
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	r.HandleFunc("/ws/{id}", handlers.HandleWebSocket)
 
-	go func() {
-		cursor, err := rethinkdb.Table("Document").Changes().Run(app.RethinkDBSess)
-		if err != nil {
-			log.Println("Error listening to changes:", err)
-		}
-
-		defer cursor.Close()
-
-		var change map[string]map[string]interface{}
-
-		for cursor.Next(&change) {
-			fmt.Printf("Real-time change: %v\n%s\n", change["new_val"]["Content"], change["new_val"]["id"])
-		}
-	}()
+	// go handlers.ListenToRethinkDB()
 
 	serverAddr := "localhost:8000"
 	log.Println("Websocket server started at ws://", serverAddr)

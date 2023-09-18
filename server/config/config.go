@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 
+	"github.com/RJD02/google-docs-clone/utils"
 	rethinkdb "gopkg.in/rethinkdb/rethinkdb-go.v6"
 )
 
@@ -18,6 +19,12 @@ type AppConfig struct {
 	RethinkDBSess      *rethinkdb.Session
 	DBTableName        string
 	RethinkDBTableName string
+	WebSocketManager   *utils.WebSocketManager
+}
+
+func (app *AppConfig) SetWebSocketManager(manager *utils.WebSocketManager) {
+	app.WebSocketManager = manager
+
 }
 
 func (app *AppConfig) SetEnvironment(environment string) {
